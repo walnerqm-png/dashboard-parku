@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard ParkU — Parqueadero Universitario</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#001f3f;padding:20px;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+.D{background:#003366;color:#e8f0fb;padding:22px;border-radius:14px;}
+.hdr{text-align:center;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:16px;}
+.htitle{font-size:28px;font-weight:600;color:#ffffff;letter-spacing:1px;}
+.hsub{font-size:13px;color:#7aaad8;margin-top:5px;}
+.nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;justify-content:center;}
+.nb{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#b0cce8;font-size:12px;padding:7px 18px;border-radius:20px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.nb.on{background:#1a5fa8;border-color:#4a8fd4;color:#fff;box-shadow:0 0 0 2px rgba(74,143,212,0.3);}
+.nb:hover{background:rgba(255,255,255,0.15);}
+.sec{display:none;animation:fadeIn 0.25s ease;}
+.sec.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.slabel{font-size:10px;letter-spacing:2px;color:#5a90c8;margin-bottom:12px;font-weight:600;text-transform:uppercase;}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+.kcard{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:14px 10px;text-align:center;}
+.klbl{font-size:10px;color:#5a90c8;letter-spacing:0.5px;margin-bottom:6px;}
+.kval{font-size:21px;font-weight:600;color:#fff;}
+.ksub{font-size:10px;color:#5a90c8;margin-top:3px;}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px;}
+.ccard{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;}
+.ctit{font-size:13px;font-weight:600;color:#ddeaf8;margin-bottom:3px;}
+.csub{font-size:10px;color:#5a90c8;margin-bottom:12px;}
+.cwrap{position:relative;width:100%;}
+.tcard{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;margin-bottom:14px;overflow-x:auto;}
+.ttit{font-size:13px;font-weight:600;color:#ddeaf8;margin-bottom:12px;}
+table.t{width:100%;border-collapse:collapse;font-size:12px;min-width:460px;}
+table.t th{background:rgba(26,95,168,0.6);color:#c8dcf4;font-weight:600;padding:8px 10px;text-align:left;font-size:11px;letter-spacing:0.5px;}
+table.t td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.06);color:#ddeaf8;}
+table.t tr:nth-child(even) td{background:rgba(255,255,255,0.03);}
+table.t tr:last-child td{border-bottom:none;font-weight:600;background:rgba(26,95,168,0.2);}
+table.t .r{text-align:right;font-variant-numeric:tabular-nums;}
+.tred{color:#e05c5c !important;}.tgrn{color:#4ec97a !important;}.tbld{font-weight:600 !important;}
+.conbox{background:rgba(26,95,168,0.2);border:1px solid rgba(74,143,212,0.3);border-radius:10px;padding:16px;margin-bottom:16px;}
+.contit{font-size:13px;font-weight:600;color:#7ac0f8;margin-bottom:10px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#9abcd8;line-height:1.8;}
+.fgrid span{color:#7ac0f8;font-weight:600;}
+.diagbox{background:rgba(255,255,255,0.04);border-left:4px solid #e8a030;border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:12px;}
+.diagtit{font-size:13px;font-weight:600;color:#e8a030;margin-bottom:8px;}
+.diagtxt{font-size:12px;color:#9abcd8;line-height:1.7;}
+.recbox{background:rgba(255,255,255,0.04);border-left:4px solid #4ec97a;border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:12px;}
+.rectit{font-size:13px;font-weight:600;color:#4ec97a;margin-bottom:6px;}
+.rectxt{font-size:12px;color:#9abcd8;line-height:1.7;}
+.filtbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.fb{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#b0cce8;font-size:12px;padding:6px 14px;border-radius:16px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.fb.on{background:#1a5fa8;border-color:#4a8fd4;color:#fff;}
+.fb:hover{background:rgba(255,255,255,0.14);}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px;}
+.ind-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;text-align:center;transition:all 0.2s;}
+.ind-card.lo{border-color:#e05c5c;background:rgba(224,92,92,0.08);}
+.ind-card.hidden{display:none;}
+.inm{font-size:11px;color:#5a90c8;margin-bottom:6px;font-weight:600;letter-spacing:0.5px;}
+.inv{font-size:20px;font-weight:600;}
+.ins{font-size:10px;color:#5a90c8;margin-top:4px;}
+.insight{background:rgba(232,160,48,0.1);border:1px solid rgba(232,160,48,0.35);border-radius:8px;padding:12px 16px;font-size:12px;color:#e8c070;line-height:1.7;margin-top:12px;}
+.red{color:#e05c5c;}.orange{color:#e8a030;}.green{color:#4ec97a;}
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:#9abcd8;}
+.leg-sq{width:10px;height:10px;border-radius:2px;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="D">
+
+<div class="hdr">
+  <div class="htitle">Dashboard ParkU</div>
+  <div class="hsub">Parqueadero Universitario &nbsp;·&nbsp; Diagnóstico Financiero FCL &nbsp;·&nbsp; Horizonte 5 Años (2026–2030)</div>
+</div>
+
+<div class="nav">
+  <button class="nb on" onclick="showSec('s1',this)">Conceptos clave</button>
+  <button class="nb" onclick="showSec('s2',this)">Estado de resultados</button>
+  <button class="nb" onclick="showSec('s3',this)">Flujo de caja libre</button>
+  <button class="nb" onclick="showSec('s4',this)">Indicadores</button>
+  <button class="nb" onclick="showSec('s5',this)">Diagnóstico</button>
+  <button class="nb" onclick="showSec('s6',this)">Recomendaciones</button>
+</div>
+
+<!-- S1: CONCEPTOS CLAVE -->
+<div id="s1" class="sec on">
+  <div class="slabel">1 · Conceptos clave del proyecto</div>
+  <div class="kgrid">
+    <div class="kcard"><div class="klbl">CAPEX</div><div class="kval">$280,000</div><div class="ksub">Inversión inicial Año 0</div></div>
+    <div class="kcard"><div class="klbl">TMAR</div><div class="kval">22%</div><div class="ksub">Costo de oportunidad</div></div>
+    <div class="kcard"><div class="klbl">Tarifa / turno</div><div class="kval">$7.50</div><div class="ksub">Precio por turno 4h</div></div>
+    <div class="kcard"><div class="klbl">Turnos Año 1</div><div class="kval">9,000</div><div class="ksub">Unidades vendidas</div></div>
+    <div class="kcard"><div class="klbl">Crecimiento</div><div class="kval">3%</div><div class="ksub">Anual en unidades</div></div>
+    <div class="kcard"><div class="klbl">Depreciación</div><div class="kval">$28,000</div><div class="ksub">Lineal a 10 años</div></div>
+    <div class="kcard"><div class="klbl">Impuestos</div><div class="kval">35%</div><div class="ksub">Tarifa corporativa</div></div>
+    <div class="kcard"><div class="klbl">Horizonte</div><div class="kval">5 años</div><div class="ksub">2026 – 2030</div></div>
+  </div>
+  <div class="conbox">
+    <div class="contit">Fórmulas clave utilizadas</div>
+    <div class="fgrid">
+      <div><span>FCL</span> = NOPAT + Depreciación − CAPEX − ΔCTR</div>
+      <div><span>NOPAT</span> = EBIT × (1 − Tasa Impuestos)</div>
+      <div><span>VPN</span> = −Inversión + Σ[FCLt / (1+TMAR)^t]</div>
+      <div><span>TIR</span> = tasa que hace VPN = 0</div>
+      <div><span>B/C</span> = Σ VP(FCL₁:₅) / Inversión inicial</div>
+      <div><span>Payback</span> = año en que VP acumulado ≥ 0</div>
+    </div>
+  </div>
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctit">Composición del CAPEX $280,000</div>
+      <div class="csub">Distribución estimada de la inversión inicial</div>
+      <div class="cwrap" style="height:200px;"><canvas id="c_capex"></canvas></div>
+      <div class="leg">
+        <span class="leg-i"><span class="leg-sq" style="background:#0c447c;"></span>Obra civil 50%</span>
+        <span class="leg-i"><span class="leg-sq" style="background:#185fa5;"></span>Cubierta 25%</span>
+        <span class="leg-i"><span class="leg-sq" style="background:#378add;"></span>Accesos 15%</span>
+        <span class="leg-i"><span class="leg-sq" style="background:#85b7eb;"></span>Cámaras 10%</span>
+      </div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">Estructura de costos por turno</div>
+      <div class="csub">Costo variable $0.80 vs. tarifa $7.50 — margen bruto 89%</div>
+      <div class="cwrap" style="height:200px;"><canvas id="c_margin"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: ESTADO DE RESULTADOS -->
+<div id="s2" class="sec">
+  <div class="slabel">2 · Estado de resultados pro-forma</div>
+  <div class="tcard">
+    <div class="ttit">Estado de resultados — Años 1 al 5 ($)</div>
+    <table class="t">
+      <tr><th>Concepto</th><th class="r">Año 1</th><th class="r">Año 2</th><th class="r">Año 3</th><th class="r">Año 4</th><th class="r">Año 5</th></tr>
+      <tr><td>Unidades vendidas</td><td class="r">9,000</td><td class="r">9,270</td><td class="r">9,548</td><td class="r">9,835</td><td class="r">10,130</td></tr>
+      <tr><td>(+) Ingresos (ventas)</td><td class="r">$67,500</td><td class="r">$69,525</td><td class="r">$71,611</td><td class="r">$73,759</td><td class="r">$75,972</td></tr>
+      <tr><td>(−) COGS</td><td class="r">$7,200</td><td class="r">$7,416</td><td class="r">$7,638</td><td class="r">$7,868</td><td class="r">$8,104</td></tr>
+      <tr><td class="tbld">(=) Utilidad bruta</td><td class="r tbld">$60,300</td><td class="r tbld">$62,109</td><td class="r tbld">$63,973</td><td class="r tbld">$65,891</td><td class="r tbld">$67,868</td></tr>
+      <tr><td>(−) Gastos fijos</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td></tr>
+      <tr><td>(−) Depreciación</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td></tr>
+      <tr><td class="tbld">(=) EBIT</td><td class="r tbld">$4,300</td><td class="r tbld">$6,109</td><td class="r tbld">$7,973</td><td class="r tbld">$9,891</td><td class="r tbld">$11,868</td></tr>
+      <tr><td>(−) Impuestos 35%</td><td class="r">$1,505</td><td class="r">$2,138</td><td class="r">$2,791</td><td class="r">$3,462</td><td class="r">$4,154</td></tr>
+      <tr><td class="tbld tgrn">(=) NOPAT</td><td class="r tbld tgrn">$2,795</td><td class="r tbld tgrn">$3,971</td><td class="r tbld tgrn">$5,182</td><td class="r tbld tgrn">$6,429</td><td class="r tbld tgrn">$7,714</td></tr>
+    </table>
+  </div>
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctit">Ingresos vs. costos totales ($)</div>
+      <div class="csub">Evolución anual — brecha operativa creciente</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_er1"></canvas></div>
+      <div class="leg">
+        <span class="leg-i"><span class="leg-sq" style="background:#185fa5;"></span>Ingresos</span>
+        <span class="leg-i"><span class="leg-sq" style="background:#e05c5c;"></span>Costos totales</span>
+      </div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">EBIT y NOPAT por año ($)</div>
+      <div class="csub">Utilidad operativa neta creciendo año a año</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_er2"></canvas></div>
+      <div class="leg">
+        <span class="leg-i"><span class="leg-sq" style="background:#378add;"></span>EBIT</span>
+        <span class="leg-i"><span class="leg-sq" style="background:#4ec97a;"></span>NOPAT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S3: FCL -->
+<div id="s3" class="sec">
+  <div class="slabel">3 · Flujo de caja libre (FCL)</div>
+  <div class="tcard">
+    <div class="ttit">Flujo de caja libre — Años 0 al 5 ($)</div>
+    <table class="t">
+      <tr><th>Concepto</th><th class="r">Año 0</th><th class="r">Año 1</th><th class="r">Año 2</th><th class="r">Año 3</th><th class="r">Año 4</th><th class="r">Año 5</th></tr>
+      <tr><td>(+) NOPAT</td><td class="r">—</td><td class="r">$2,795</td><td class="r">$3,971</td><td class="r">$5,182</td><td class="r">$6,429</td><td class="r">$7,714</td></tr>
+      <tr><td>(+) Depreciación</td><td class="r">—</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td><td class="r">$28,000</td></tr>
+      <tr><td>(−) CAPEX</td><td class="r tred">−$280,000</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>
+      <tr><td>(−) Δ Cap. trabajo</td><td class="r">—</td><td class="r">$3,375</td><td class="r">$101</td><td class="r">$104</td><td class="r">$107</td><td class="r">$111</td></tr>
+      <tr><td class="tbld tgrn">(=) FCL ✔</td><td class="r tbld tred">−$280,000</td><td class="r tbld tgrn">$27,420</td><td class="r tbld tgrn">$31,870</td><td class="r tbld tgrn">$33,078</td><td class="r tbld tgrn">$34,322</td><td class="r tbld tgrn">$35,604</td></tr>
+      <tr><td>VP del FCL (22%)</td><td class="r">—</td><td class="r">$22,475</td><td class="r">$21,412</td><td class="r">$18,216</td><td class="r">$15,493</td><td class="r">$13,173</td></tr>
+      <tr><td class="tbld tred">VP acumulado</td><td class="r tbld tred">−$280,000</td><td class="r tbld tred">−$257,525</td><td class="r tbld tred">−$236,113</td><td class="r tbld tred">−$217,896</td><td class="r tbld tred">−$202,404</td><td class="r tbld tred">−$189,230</td></tr>
+    </table>
+  </div>
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctit">FCL por año ($)</div>
+      <div class="csub">Flujos positivos años 1–5 pese al CAPEX masivo</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_fcl1"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">VP acumulado — evolución ($)</div>
+      <div class="csub">La brecha de −$189,230 persiste al Año 5</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_fcl2"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- S4: INDICADORES -->
+<div id="s4" class="sec">
+  <div class="slabel">4 · Indicadores de viabilidad</div>
+  <div class="filtbar">
+    <button class="fb on" onclick="filtInd('all',this)">Todos</button>
+    <button class="fb" onclick="filtInd('bad',this)">No viables</button>
+    <button class="fb" onclick="filtInd('vpn',this)">VPN</button>
+    <button class="fb" onclick="filtInd('tir',this)">TIR</button>
+    <button class="fb" onclick="filtInd('bc',this)">B/C</button>
+    <button class="fb" onclick="filtInd('pb',this)">Payback</button>
+  </div>
+  <div class="ind-grid" id="indGrid">
+    <div class="ind-card lo" data-k="vpn bad"><div class="inm">VPN</div><div class="inv red">−$189,230</div><div class="ins">❌ VPN &lt; 0 · No viable</div></div>
+    <div class="ind-card lo" data-k="tir bad"><div class="inm">TIR</div><div class="inv red">−15.34%</div><div class="ins">❌ TIR &lt; TMAR 22%</div></div>
+    <div class="ind-card lo" data-k="bc bad"><div class="inm">B/C</div><div class="inv red">0.324</div><div class="ins">❌ B/C &lt; 1.0</div></div>
+    <div class="ind-card lo" data-k="pb bad"><div class="inm">Payback descontado</div><div class="inv red">&gt; 5 años</div><div class="ins">❌ No se recupera</div></div>
+    <div class="ind-card" data-k="vpn"><div class="inm">VP flujos totales</div><div class="inv orange">$90,770</div><div class="ins">32.4% del CAPEX</div></div>
+    <div class="ind-card" data-k="tir"><div class="inm">Brecha TIR–TMAR</div><div class="inv red">−37.34 pp</div><div class="ins">Peor de los 5 proyectos</div></div>
+  </div>
+  <div class="insight" id="insightBox">Insight: todos los indicadores son desfavorables. El VPN de −$189,230 es el peor de los 5 proyectos. La brecha TIR–TMAR de 37.34 pp indica que el rendimiento real está muy por debajo del costo de oportunidad. Solo se recupera $0.32 por cada $1 invertido.</div>
+  <div class="cgrid" style="margin-top:16px;">
+    <div class="ccard">
+      <div class="ctit">TIR vs. TMAR (%)</div>
+      <div class="csub">Brecha de 37.34 pp — rendimiento insuficiente</div>
+      <div class="cwrap" style="height:200px;"><canvas id="c_tir"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">B/C — recuperación por $1 invertido</div>
+      <div class="csub">Solo $0.324 recuperados vs. umbral $1.00</div>
+      <div class="cwrap" style="height:200px;"><canvas id="c_bc"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">CAPEX vs. VP flujos recuperado ($)</div>
+      <div class="csub">Brecha sin cubrir: $189,230 al final del horizonte</div>
+      <div class="cwrap" style="height:200px;"><canvas id="c_capv"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- S5: DIAGNÓSTICO -->
+<div id="s5" class="sec">
+  <div class="slabel">5 · Diagnóstico — ¿Por qué FCL positivos pero proyecto no viable?</div>
+  <div class="diagbox">
+    <div class="diagtit">Paradoja financiera central</div>
+    <div class="diagtxt">El proyecto genera FCL positivos todos los años ($27,420 a $35,604), confirmando capacidad operativa real. Sin embargo, el VPN es −$189,230 porque la inversión de $280,000 es desproporcionada frente a los flujos que produce a una TMAR del 22%.</div>
+  </div>
+  <div class="diagbox">
+    <div class="diagtit">CAPEX masivo vs. tarifa insuficiente</div>
+    <div class="diagtxt">La inversión de $280,000 en obra civil, cubierta metálica y sistemas de acceso es la más alta de los cinco proyectos analizados. La tarifa de $7.50/turno genera ingresos de $67,500 en Año 1 — insuficientes para rentabilizar esa inversión. El VP total de los cinco años ($90,770) cubre solo el 32.4% del CAPEX. La brecha irrecuperable es de $189,230.</div>
+  </div>
+  <div class="diagbox">
+    <div class="diagtit">El efecto "escudo" de la depreciación</div>
+    <div class="diagtxt">La depreciación anual de $28,000 representa 10 veces el NOPAT del Año 1 ($2,795). Al sumarse al NOPAT en el cálculo del FCL, hace que el flujo sea positivo cuando la utilidad neta es casi nula. Esta "magia contable" no genera valor económico real frente a la TMAR del 22% exigida.</div>
+  </div>
+  <div class="diagbox">
+    <div class="diagtit">TIR negativa — la señal más crítica</div>
+    <div class="diagtxt">Una TIR de −15.34% indica que el proyecto destruye valor incluso sin tasa de descuento. Es el peor indicador de los cinco proyectos analizados, con una brecha de 37.34 puntos porcentuales respecto a la TMAR del 22%.</div>
+  </div>
+  <div class="cgrid">
+    <div class="ccard">
+      <div class="ctit">Descomposición del FCL Año 1 ($)</div>
+      <div class="csub">La depreciación infla el FCL — efecto no monetario</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_d1"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">VP flujos vs. CAPEX requerido ($)</div>
+      <div class="csub">Brecha irrecuperable de $189,230 al Año 5</div>
+      <div class="cwrap" style="height:210px;"><canvas id="c_d2"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- S6: RECOMENDACIONES -->
+<div id="s6" class="sec">
+  <div class="slabel">6 · Recomendaciones para hacer el proyecto viable</div>
+  <div class="recbox">
+    <div class="rectit">1 · Arrendar en lugar de construir — Alta prioridad</div>
+    <div class="rectxt">Cambiar el modelo de propiedad a arrendamiento reduciría el CAPEX en 50–60%, de $280,000 a ~$112,000–$140,000. Con este nivel de inversión y los mismos flujos, el VPN podría volverse positivo y la TIR superar la TMAR del 22%.</div>
+  </div>
+  <div class="recbox">
+    <div class="rectit">2 · Aumentar la tarifa por turno — Alta prioridad</div>
+    <div class="rectxt">Subir la tarifa de $7.50 a $12–$15 por turno incrementaría los ingresos de $67,500 a $108,000–$135,000 en Año 1. Cada $1 adicional de tarifa genera ~$5,850 más de ingresos anuales (9,000 turnos × $1), mejorando directamente el NOPAT y el FCL.</div>
+  </div>
+  <div class="recbox">
+    <div class="rectit">3 · Automatizar el sistema de acceso — Media prioridad</div>
+    <div class="rectxt">Barreras electrónicas y pago digital reducen los costos fijos de vigilancia 24h, mejorando el margen operativo sin requerir inversión adicional significativa.</div>
+  </div>
+  <div class="recbox">
+    <div class="rectit">4 · Servicios complementarios de alto margen — Media prioridad</div>
+    <div class="rectxt">Lavado de vehículos, artículos de conveniencia o suscripciones mensuales incrementan el ingreso promedio por cliente. Una membresía mensual de $25 con 100 suscriptores genera $30,000 adicionales por año.</div>
+  </div>
+  <div class="recbox">
+    <div class="rectit">5 · Revisar la TMAR con socios estratégicos — Recomendación estratégica</div>
+    <div class="rectxt">Cofinanciamiento con la universidad o alianzas público-privadas puede reducir el costo de oportunidad del 22% al 12–15%, haciendo que los flujos actuales sean suficientes para un VPN positivo sin cambiar la operación.</div>
+  </div>
+  <div class="cgrid" style="margin-top:16px;">
+    <div class="ccard">
+      <div class="ctit">Sensibilidad: tarifa por turno vs. VPN ($)</div>
+      <div class="csub">Punto de viabilidad entre $17–$18 por turno (CAPEX fijo)</div>
+      <div class="cwrap" style="height:220px;"><canvas id="c_rec1"></canvas></div>
+    </div>
+    <div class="ccard">
+      <div class="ctit">Impacto estimado de escenarios sobre VPN ($)</div>
+      <div class="csub">Escenario base vs. combinación de acciones</div>
+      <div class="cwrap" style="height:220px;"><canvas id="c_rec2"></canvas></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .D -->
+
+<script>
+const G={
+  x:{ticks:{color:'#7aaad8',font:{size:11}},grid:{color:'rgba(255,255,255,0.07)'}},
+  y:{ticks:{color:'#7aaad8',font:{size:11}},grid:{color:'rgba(255,255,255,0.07)'}}
+};
+function mk(id,type,data,opts){
+  const el=document.getElementById(id);
+  if(!el)return;
+  return new Chart(el,{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+
+function showSec(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+  setTimeout(initCharts,60);
+}
+
+const msgs={
+  all:'Insight: todos los indicadores son desfavorables. El VPN de −$189,230 es el peor de los 5 proyectos. La brecha TIR–TMAR de 37.34 pp indica que el rendimiento real está muy por debajo del costo de oportunidad. Solo se recupera $0.32 por cada $1 invertido.',
+  bad:'Insight: los 4 indicadores de decisión (VPN, TIR, B/C, Payback) fallan simultáneamente. El CAPEX masivo de $280,000 es la causa raíz de todos los indicadores negativos.',
+  vpn:'Insight: VPN = −$189,230. El valor presente de los 5 años de flujos ($90,770) cubre apenas el 32.4% de la inversión. Se necesitaría triplicar los flujos anuales para alcanzar VPN = 0.',
+  tir:'Insight: TIR = −15.34%, brecha de 37.34 pp respecto a TMAR 22%. Es la TIR más baja de los 5 proyectos. Significa que incluso con tasa cero el proyecto destruye valor.',
+  bc:'Insight: B/C = 0.324. Por cada $1 invertido solo se recuperan $0.32 en valor presente. Para llegar a B/C = 1.0 se necesitaría reducir el CAPEX a $90,770 o multiplicar los flujos por 3.1×.',
+  pb:'Insight: el payback descontado supera los 5 años. Al ritmo actual (~$18,000–$22,000 de VP por año), tomaría aproximadamente 13–15 años recuperar los $280,000 invertidos.'
+};
+
+function filtInd(k,btn){
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.ind-card').forEach(c=>{
+    const dk=c.dataset.k||'';
+    if(k==='all') c.classList.remove('hidden');
+    else if(k==='bad') c.classList.toggle('hidden',!dk.includes('bad'));
+    else c.classList.toggle('hidden',!dk.includes(k));
+  });
+  document.getElementById('insightBox').textContent=msgs[k]||msgs.all;
+}
+
+let inited=false;
+function initCharts(){
+  if(inited)return; inited=true;
+
+  mk('c_capex','doughnut',{
+    datasets:[{data:[50,25,15,10],backgroundColor:['#0c447c','#185fa5','#378add','#85b7eb'],borderWidth:2,borderColor:'#003366'}]
+  },{cutout:'60%'});
+
+  mk('c_margin','bar',{
+    labels:['Costo variable ($0.80)','Margen bruto ($6.70)'],
+    datasets:[{data:[0.8,6.7],backgroundColor:['#e05c5c','#4ec97a'],borderRadius:5}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+v.toFixed(2)}}}});
+
+  mk('c_er1','bar',{
+    labels:['Año 1','Año 2','Año 3','Año 4','Año 5'],
+    datasets:[
+      {data:[67500,69525,71611,73759,75972],backgroundColor:'#185fa5',borderRadius:4,label:'Ingresos'},
+      {data:[63200,63416,63638,63868,64104],backgroundColor:'#e05c5c',borderRadius:4,label:'Costos'}
+    ]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}},plugins:{legend:{display:false}}});
+
+  mk('c_er2','bar',{
+    labels:['Año 1','Año 2','Año 3','Año 4','Año 5'],
+    datasets:[
+      {data:[4300,6109,7973,9891,11868],backgroundColor:'#378add',borderRadius:4,label:'EBIT'},
+      {data:[2795,3971,5182,6429,7714],backgroundColor:'#4ec97a',borderRadius:4,label:'NOPAT'}
+    ]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(1)+'k'}}},plugins:{legend:{display:false}}});
+
+  mk('c_fcl1','bar',{
+    labels:['Año 0','Año 1','Año 2','Año 3','Año 4','Año 5'],
+    datasets:[{data:[-280000,27420,31870,33078,34322,35604],
+      backgroundColor:['#e05c5c','#4ec97a','#4ec97a','#4ec97a','#4ec97a','#4ec97a'],borderRadius:4}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+
+  mk('c_fcl2','line',{
+    labels:['Año 0','Año 1','Año 2','Año 3','Año 4','Año 5'],
+    datasets:[
+      {data:[-280000,-257525,-236113,-217896,-202404,-189230],borderColor:'#e05c5c',backgroundColor:'rgba(224,92,92,0.12)',fill:true,tension:0.35,pointRadius:5,pointBackgroundColor:'#e05c5c'},
+      {data:[0,0,0,0,0,0],borderColor:'#4ec97a',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}
+    ]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}},plugins:{legend:{display:false}}});
+
+  mk('c_tir','bar',{
+    labels:['TIR proyecto','TMAR exigida'],
+    datasets:[{data:[-15.34,22],backgroundColor:['#e05c5c','#185fa5'],borderRadius:5}]
+  },{scales:{...G,y:{...G.y,min:-25,max:30,ticks:{...G.y.ticks,callback:v=>v+'%'}}}});
+
+  mk('c_bc','bar',{
+    labels:['B/C actual','Umbral mínimo'],
+    datasets:[{data:[0.324,1.0],backgroundColor:['#e05c5c','#4ec97a'],borderRadius:5}]
+  },{scales:{...G,y:{...G.y,min:0,max:1.3}}});
+
+  mk('c_capv','bar',{
+    labels:['CAPEX invertido','VP flujos recuperado'],
+    datasets:[{data:[280000,90770],backgroundColor:['#e05c5c','#185fa5'],borderRadius:5}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+
+  mk('c_d1','bar',{
+    labels:['NOPAT','+ Depreciación','= FCL Año 1'],
+    datasets:[{data:[2795,28000,27420],backgroundColor:['#378add','#e8a030','#4ec97a'],borderRadius:5}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+
+  mk('c_d2','bar',{
+    labels:['VP A1','VP A2','VP A3','VP A4','VP A5','Total VP','CAPEX'],
+    datasets:[{data:[22475,21412,18216,15493,13173,90770,280000],
+      backgroundColor:['#185fa5','#185fa5','#185fa5','#185fa5','#185fa5','#378add','#e05c5c'],borderRadius:4}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+
+  function vpnCalc(tarifa){
+    const tmar=0.22,capex=280000,dep=28000,cf=28000,cv=0.8,tax=0.35,ctw=0.05;
+    let u=9000,vpn=-capex,prev=0;
+    for(let t=1;t<=5;t++){
+      const v=u*tarifa,cogs=u*cv,ub=v-cogs,ebit=ub-cf-dep;
+      const nopat=ebit>0?ebit*(1-tax):ebit;
+      const ctwv=v*ctw,delta=ctwv-prev,fcl=nopat+dep-delta;
+      vpn+=fcl/Math.pow(1+tmar,t);
+      prev=ctwv; u=Math.round(u*1.03);
+    }
+    return Math.round(vpn);
+  }
+  const tarifas=[5,7.5,10,12,15,18,20];
+  const vpns=tarifas.map(t=>vpnCalc(t));
+  mk('c_rec1','bar',{
+    labels:tarifas.map(t=>'$'+t),
+    datasets:[{data:vpns,backgroundColor:vpns.map(v=>v>=0?'#4ec97a':'#e05c5c'),borderRadius:4}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+
+  mk('c_rec2','bar',{
+    labels:['Base','Arrendar','Tarifa $15','Arrendar+$15','Con socios'],
+    datasets:[{data:[-189230,-45000,-62000,48000,22000],
+      backgroundColor:['#e05c5c','#e05c5c','#e8a030','#4ec97a','#4ec97a'],borderRadius:4}]
+  },{scales:{...G,y:{...G.y,ticks:{...G.y.ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}});
+}
+
+window.addEventListener('load',()=>setTimeout(initCharts,200));
+</script>
+</body>
+</html>
